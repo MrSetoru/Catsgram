@@ -1,6 +1,7 @@
 package ru.yandex.practicum.catsgram.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.catsgram.exception.NotFoundException;
 import ru.yandex.practicum.catsgram.model.Post;
@@ -20,8 +21,12 @@ public class PostController {
     }
 
     @GetMapping
-    public Collection<Post> findAll() {
-        return postService.findAll();
+    public Collection<Post> findAll(@RequestParam(value = "sort", defaultValue = "Значение " +
+            "по умолчанию") String sort,
+                                    @RequestParam(value = "from", defaultValue = "0") int from,
+                                    @RequestParam(value = "size", defaultValue = "10") int size) {
+        PostService.SortOrder sortOrder = PostService.SortOrder.from(sort);
+        return postService.findAll(sortOrder, from, size);
     }
 
     @GetMapping("/{id}")
@@ -36,6 +41,7 @@ public class PostController {
 
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public Post create(@RequestBody Post post) {
         return postService.create(post);
     }

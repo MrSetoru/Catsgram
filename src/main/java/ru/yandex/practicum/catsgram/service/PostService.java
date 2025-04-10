@@ -2,15 +2,15 @@ package ru.yandex.practicum.catsgram.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestParam;
 import ru.yandex.practicum.catsgram.exception.ConditionsNotMetException;
 import ru.yandex.practicum.catsgram.exception.NotFoundException;
 import ru.yandex.practicum.catsgram.model.Post;
 
 import java.time.Instant;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class PostService {
@@ -22,8 +22,21 @@ public class PostService {
         this.userService = userService;
     }
 
-    public Collection<Post> findAll() {
-        return posts.values();
+    public Collection<Post> findAll(SortOrder sortOrder, int from, int size) {
+        Stream<Post> postStream = posts.values().stream();
+
+        if (sortOrder == SortOrder.ASCENDING) {
+            postStream = postStream.sorted(Comparator.comparing(Post::getPostDate));
+        } else {
+            postStream = postStream.sorted(Comparator.comparing(Post::getPostDate).reversed());
+        }
+        if (from < 0 || size <= 0) {
+            return Collections.emptyList();
+        }
+        return postStream
+                .skip(from)
+                .limit(size)
+                .collect(Collectors.toList());
     }
 
     public Post create(Post post) {
@@ -62,6 +75,23 @@ public class PostService {
             return Optional.of(posts.get(id));
         } else {
             return Optional.empty();
+        }
+    }
+
+    public enum SortOrder {
+        ASCENDING, DESCENDING;
+
+        public static SortOrder from(String order) {
+            switch (order.toLowerCase()) {
+                case "ascending":
+                case "asc":
+                    return ASCENDING;
+                case "descending":
+                case "desc":
+                    return DESCENDING;
+                default:
+                    return DESCENDING; // Default to descending if invalid input
+            }
         }
     }
 
