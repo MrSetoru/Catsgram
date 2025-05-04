@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import ru.yandex.practicum.catsgram.exception.ConditionsNotMetException;
-import ru.yandex.practicum.catsgram.exception.ImageFileException;
 import ru.yandex.practicum.catsgram.exception.NotFoundException;
 import ru.yandex.practicum.catsgram.model.Image;
 import ru.yandex.practicum.catsgram.model.ImageData;
@@ -42,7 +41,7 @@ public class ImageService {
     }
 
     // загружаем данные указанного изображения с диска
-    public ImageData getImageData(long imageId) {
+    public ImageData getImageData(long imageId) throws IOException {
         if (!images.containsKey(imageId)) {
             throw new NotFoundException("Изображение с id = " + imageId + " не найдено");
         }
@@ -53,19 +52,20 @@ public class ImageService {
         return new ImageData(data, image.getOriginalFileName());
     }
 
-    private byte[] loadFile(Image image) {
+    private byte[] loadFile(Image image) throws IOException {
         Path path = Paths.get(image.getFilePath());
-        if (Files.exists(path)) {
-            try {
-                return Files.readAllBytes(path);
-            } catch (IOException e) {
-                throw new ImageFileException("Ошибка чтения файла.  Id: " + image.getId()
-                        + ", name: " + image.getOriginalFileName(), e);
-            }
-        } else {
-            throw new ImageFileException("Файл не найден. Id: " + image.getId()
-                    + ", name: " + image.getOriginalFileName());
-        }
+//        if (Files.exists(path)) {
+//            try {
+//                return Files.readAllBytes(path);
+//            } catch (IOException e) {
+//                throw new ImageFileException("Ошибка чтения файла.  Id: " + image.getId()
+//                        + ", name: " + image.getOriginalFileName(), e);
+//            }
+//        } else {
+//            throw new ImageFileException("Файл не найден. Id: " + image.getId()
+//                    + ", name: " + image.getOriginalFileName());
+//        }
+        return Files.readAllBytes(path);
     }
 
     // сохранение списка изображений, связанных с указанным постом
@@ -75,7 +75,7 @@ public class ImageService {
 
     // сохранение отдельного изображения, связанного с указанным постом
     private Image saveImage(long postId, MultipartFile file) {
-        Post post = postService.findById(postId)
+        Post post = postService.findPostById(postId)
                 .orElseThrow(() -> new ConditionsNotMetException("Указанный пост не найден"));
 
         // сохраняем изображение на диск и возвращаем путь к файлу

@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.catsgram.exception.NotFoundException;
-import ru.yandex.practicum.catsgram.model.Post;
 import ru.yandex.practicum.catsgram.model.User;
 import ru.yandex.practicum.catsgram.service.UserService;
 
@@ -45,7 +44,7 @@ public class UserController {
     }
 
     @PutMapping
-    public User update(@RequestBody User user){
+    public User update(@RequestBody User user) {
         return userService.update(user);
     }
 }
